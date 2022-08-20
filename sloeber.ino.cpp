@@ -2,7 +2,7 @@
 //This is a automatic generated file
 //Please do not modify this file
 //If you touch this file your change will be overwritten during the next build
-//This file has been generated on 2022-08-20 21:29:42
+//This file has been generated on 2022-08-20 22:34:28
 
 #include "Arduino.h"
 #include <ArduinoJson.h>
@@ -23,7 +23,8 @@ void setup() ;
 unsigned char getMovementModeFromCurrentJson() ;
 void parseJsonDocGenericAndUpdateKeyframeRow(unsigned char *manualKeyframeServoGroupRow, char *servoGroupName, unsigned char manualKeyframeServoGroupRowLength) ;
 void processJsonDocument() ;
-void parseJsonDoc() ;
+void debugStaticManualKeyframeArrays0() ;
+void processMovement() ;
 void loop() ;
 
 #include "generic_robot_json.ino"

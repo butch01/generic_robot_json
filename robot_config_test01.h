@@ -74,7 +74,8 @@
 	// TODO: array for min, max, trim
 
 	// array for manual keyframe set moves. Will also be used for live json movement wich sends values for all servos
-	unsigned char manualKeyframeSetServoGroup0[MOVE_MANUAL_KEYFRAMESET_MAX_KEYFRAME_COUNT][NUMBER_OF_SERVOGROUP_0_SERVOS];
+	// +1 for time
+	unsigned char manualKeyframeSetServoGroup0[MOVE_MANUAL_KEYFRAMESET_MAX_KEYFRAME_COUNT][NUMBER_OF_SERVOGROUP_0_SERVOS +1];
 
 
 #endif
@@ -115,7 +116,7 @@
 		0,1
 	};
 	// array for manual keyframe set moves. Will also be used for live json movement wich sends values for all servos
-	unsigned char manualKeyframeSetServoGroup2[MOVE_MANUAL_KEYFRAMESET_MAX_KEYFRAME_COUNT][NUMBER_OF_SERVOGROUP_2_SERVOS];
+	unsigned char manualKeyframeSetServoGroup2[MOVE_MANUAL_KEYFRAMESET_MAX_KEYFRAME_COUNT][NUMBER_OF_SERVOGROUP_2_SERVOS +1];
 
 #endif
 
@@ -128,7 +129,7 @@
 	};
 
 	// array for manual keyframe set moves. Will also be used for live json movement wich sends values for all servos
-	unsigned char manualKeyframeSetServoGroup3[MOVE_MANUAL_KEYFRAMESET_MAX_KEYFRAME_COUNT][NUMBER_OF_SERVOGROUP_3_SERVOS];
+	unsigned char manualKeyframeSetServoGroup3[MOVE_MANUAL_KEYFRAMESET_MAX_KEYFRAME_COUNT][NUMBER_OF_SERVOGROUP_3_SERVOS +1];
 
 #endif
 

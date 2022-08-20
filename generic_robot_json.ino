@@ -127,7 +127,7 @@ void setup()
 		// cannot give pointer to 2d array as argument. So I need to iterate through the number of keyframe and set each keyframe
 		for (unsigned char k; k < MOVE_MANUAL_KEYFRAMESET_MAX_KEYFRAME_COUNT; k++ )
 		{
-			setupServoGroupKeyframeSet(servoGroup0, 0, k, manualKeyframeSetServoGroup0[k], NUMBER_OF_SERVOGROUP_0_SERVOS+1, KEYFRAME_DEFAULT_TIME);
+			setupServoGroupKeyframeSet(servoGroup0, 0, k, manualKeyframeSetServoGroup0[k], NUMBER_OF_SERVOGROUP_0_SERVOS +1, KEYFRAME_DEFAULT_TIME);
 		}
 	#endif
 	#if NUMBER_OF_SERVOGROUPS > 1
@@ -136,7 +136,7 @@ void setup()
 		// cannot give pointer to 2d array as argument. So I need to iterate through the number of keyframe and set each keyframe
 		for (unsigned char k; k < MOVE_MANUAL_KEYFRAMESET_MAX_KEYFRAME_COUNT; k++ )
 		{
-			setupServoGroupKeyframeSet(servoGroup1, 1, k, manualKeyframeSetServoGroup1[k], NUMBER_OF_SERVOGROUP_1_SERVOS+1, KEYFRAME_DEFAULT_TIME);
+			setupServoGroupKeyframeSet(servoGroup1, 1, k, manualKeyframeSetServoGroup1[k], NUMBER_OF_SERVOGROUP_1_SERVOS +1, KEYFRAME_DEFAULT_TIME);
 		}
 	#endif
 	#if NUMBER_OF_SERVOGROUPS > 2
@@ -202,12 +202,12 @@ void parseJsonDocGenericAndUpdateKeyframeRow(unsigned char *manualKeyframeServoG
 	unsigned char value=0;
 
 	unsigned char time=doc["t"];
-	for (unsigned char servo=1; servo <= manualKeyframeServoGroupRowLength;  servo++)
+	for (unsigned char servo=1; servo < manualKeyframeServoGroupRowLength;  servo++)
 		{
 
 			String id=String(servo-1);
 			value=doc[servoGroupName][id];
-			manualKeyframeSetServoGroup0[0][servo] = value;
+			manualKeyframeServoGroupRow[servo] = value;
 			#if DEBUG_JSON_PARSING
 				Log.traceln("%s: servo=%d, value from doc=%d", __FUNCTION__, servo, value);
 			#endif
@@ -220,7 +220,7 @@ void parseJsonDocGenericAndUpdateKeyframeRow(unsigned char *manualKeyframeServoG
  */
 void processJsonDocument()
 {
-	unsigned char movementMode = getMovementModeFromCurrentJson();
+	movementMode = getMovementModeFromCurrentJson();
 	switch (movementMode)
 	{
 		case MOVE_MANUAL_JSON_LIVE:
@@ -229,6 +229,7 @@ void processJsonDocument()
 			{
 				// build the servorgroup name (static text + dynamic id)
 				String sg = "sg" + String(i);
+				DEBUG_SERIAL_NAME.println(sg);
 
 				// check if the desired servogroup is inside the json document
 				if (doc.containsKey(sg))
@@ -249,7 +250,7 @@ void processJsonDocument()
 								#if DEBUG_PROCESS_JSON_DOCUMENT
 									Log.traceln(F("%s: movementMode=%d calling parseJsonDocGenericAndUpdateKeyframeRow for sg%d, length %d "), __FUNCTION__, movementMode, i, sizeof (manualKeyframeSetServoGroup1[0]));
 								#endif
-								parseJsonDocGenericAndUpdateKeyframeRow(manualKeyframeSetServoGroup1[0], "sg1", sizeof (manualKeyframeSetServoGroup0[1]));
+								parseJsonDocGenericAndUpdateKeyframeRow(manualKeyframeSetServoGroup1[0], "sg1", sizeof (manualKeyframeSetServoGroup1[0]));
 								break;
 						#endif
 						#if NUMBER_OF_SERVOGROUPS > 2
@@ -272,7 +273,7 @@ void processJsonDocument()
 				}
 				else
 				{
-					Log.trace("missing sg%d", i);
+					Log.traceln("missing sg%d", i);
 				}
 			}
 			break;
@@ -280,33 +281,63 @@ void processJsonDocument()
 
 }
 
-void parseJsonDoc()
+
+void debugStaticManualKeyframeArrays0()
 {
-	unsigned char  time=doc["t"];
-	movementMode = doc["m"];
+	Log.traceln(F("%s: keyframe sg0, %d %d %d %d %d %d %d"), __FUNCTION__, manualKeyframeSetServoGroup0[0][0], manualKeyframeSetServoGroup0[0][1], manualKeyframeSetServoGroup0[0][2], manualKeyframeSetServoGroup0[0][3], manualKeyframeSetServoGroup0[0][4], manualKeyframeSetServoGroup0[0][5], manualKeyframeSetServoGroup0[0][6]);
+	Log.traceln(F("%s: keyframe sg1, %d %d %d %d %d %d %d"), __FUNCTION__, manualKeyframeSetServoGroup1[0][0], manualKeyframeSetServoGroup1[0][1], manualKeyframeSetServoGroup1[0][2], manualKeyframeSetServoGroup1[0][3], manualKeyframeSetServoGroup1[0][4], manualKeyframeSetServoGroup1[0][5], manualKeyframeSetServoGroup1[0][6]);
 
-	#if DEBUG_JSON_PARSING
-		Log.traceln(F("%s: time=%d, mm=%d"), __FUNCTION__, time, movementMode);
-	#endif
-	if (movementMode == MOVE_MANUAL_JSON_LIVE )
+}
+// processes the movement / wrapper of different movement methods
+void processMovement()
+{
+
+	switch (movementMode)
 	{
-	#if NUMBER_OF_SERVOGROUPS > 1
-		String sg="sg0";
-		unsigned char value=0;
 
-		manualKeyframeSetServoGroup0[0][0]=time;
-		for (unsigned char servo=1; servo <= sizeof (manualKeyframeSetServoGroup0[0]);  servo++)
-		{
-
-			String id=String(servo-1);
-			value=doc[sg][id];
-			manualKeyframeSetServoGroup0[0][servo] = value;
-			#if DEBUG_JSON_PARSING
-				Log.traceln("servo=%d, value from doc=%d", servo,value);
+		case MOVE_MANUAL_JSON_LIVE:
+			// set the servos to the given position.
+			#if NUMBER_OF_SERVOGROUPS > 0
+				for (unsigned char servo=0; servo < sizeof (manualKeyframeSetServoGroup0[0]) -1 ; servo++)
+				{
+					#if DEBUG_PROCESS_MOVEMENT
+					Log.traceln(F("%s: calling servoGroup0[%d].enhancedWrite(%d, 0, 180)"), __FUNCTION__, servo, manualKeyframeSetServoGroup0[0][servo+1]);
+					#endif
+					servoGroup0[servo].enhancedWrite(manualKeyframeSetServoGroup0[0][servo+1], 0, 180);
+				}
 			#endif
 
-		}
-	#endif
+			#if NUMBER_OF_SERVOGROUPS > 1
+			for (unsigned char servo=0; servo < sizeof (manualKeyframeSetServoGroup1[0]) -1 ; servo++)
+				{
+					#if DEBUG_PROCESS_MOVEMENT
+						Log.traceln(F("%s: calling servoGroup1[%d].enhancedWrite(%d, 0, 180)"), __FUNCTION__, servo, manualKeyframeSetServoGroup1[0][servo+1]);
+					#endif
+						servoGroup1[servo].enhancedWrite(manualKeyframeSetServoGroup1[0][servo+1], 0, 180);
+				}
+			#endif
+
+			#if NUMBER_OF_SERVOGROUPS > 2
+			for (unsigned char servo=0; servo < sizeof (manualKeyframeSetServoGroup2[0]) -1 ; servo++)
+				{
+					#if DEBUG_PROCESS_MOVEMENT
+						Log.traceln(F("%s: calling servoGroup2[%d].enhancedWrite(%d, 0, 180)"), __FUNCTION__, servo, manualKeyframeSetServoGroup2[0][servo+1]);
+					#endif
+						servoGroup2[servo].enhancedWrite(manualKeyframeSetServoGroup2[0][servo+1], 0, 180);
+				}
+			#endif
+
+			#if NUMBER_OF_SERVOGROUPS > 3
+			for (unsigned char servo=0; servo < sizeof (manualKeyframeSetServoGroup3[0]) -1 ; servo++)
+				{
+					#if DEBUG_PROCESS_MOVEMENT
+						Log.traceln(F("%s: calling servoGroup3[%d].enhancedWrite(%d, 0, 180)"), __FUNCTION__, servo, manualKeyframeSetServoGroup3[0][servo+1]);
+					#endif
+						servoGroup3[servo].enhancedWrite(manualKeyframeSetServoGroup2[0][servo+1], 0, 180);
+				}
+			#endif
+
+
 	}
 
 }
@@ -325,8 +356,11 @@ void loop()
 			DEBUG_SERIAL_NAME.println(jsonParsingError.f_str());
 		return;
 		}
-//		parseJsonDoc();
+		// process the json document
 		processJsonDocument();
+//		debugStaticManualKeyframeArrays0();
+		processMovement();
+//		debugStaticManualKeyframeArrays0();
 
 
 	}
