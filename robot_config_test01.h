@@ -56,18 +56,19 @@
 
 	// stores the arduino pins in an array. Will be mapped to EnhancedServo[] Array of the servoGroup0
 	const static unsigned char  pinsServoGroup0[] PROGMEM = {
-			// SERVO_LEG_UP_LEFT_PIN
-			40,
-			// SERVO_LEG_UP_RIGHT_PIN
-			41,
-			// SERVO_LEG_KNEE_LEFT_PIN
-			42,
-			// SERVO_LEG_KNEE_RIGHT_PIN
-			43,
-			// SERVO_LEG_ANKLE_LEFT_PIN
-			44,
-			// SERVO_LEG_ANKLE_RIGHT_PIN
-			45
+		// SERVO_SHOULDER_LEFT_PIN
+		30,
+		// SERVO_SHOULDER_RIGHT_PIN
+		31,
+		// SERVO_ARM_UP_LEFT_PIN
+		32,
+		// SERVO_ARM_UP_RIGHT_PIN
+		33,
+		// SERVO_ARM_LOW_LEFT_PIN,
+		34,
+		// SERVO_ARM_LOW_RIGHT_PIN
+		35
+
 	};
 
 	// TODO: array for min, max, trim
@@ -85,18 +86,18 @@
 	EnhancedServo servoGroup1[NUMBER_OF_SERVOGROUP_1_SERVOS];
 
 	const static unsigned char  pinsServoGroup1[] PROGMEM = {
-			// SERVO_SHOULDER_LEFT_PIN
-			30,
-			// SERVO_SHOULDER_RIGHT_PIN
-			31,
-			// SERVO_ARM_UP_LEFT_PIN
-			32,
-			// SERVO_ARM_UP_RIGHT_PIN
-			33,
-			// SERVO_ARM_LOW_LEFT_PIN,
-			34,
-			// SERVO_ARM_LOW_RIGHT_PIN
-			35
+		// SERVO_LEG_UP_LEFT_PIN
+		40,
+		// SERVO_LEG_UP_RIGHT_PIN
+		41,
+		// SERVO_LEG_KNEE_LEFT_PIN
+		42,
+		// SERVO_LEG_KNEE_RIGHT_PIN
+		43,
+		// SERVO_LEG_ANKLE_LEFT_PIN
+		44,
+		// SERVO_LEG_ANKLE_RIGHT_PIN
+		45
 	};
 
 	// array for manual keyframe set moves. Will also be used for live json movement wich sends values for all servos

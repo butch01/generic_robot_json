@@ -5,6 +5,7 @@
 #include "ServoKeyframeAnimator.h"
 #include <ArduinoLog.h>
 #include <EnhancedServo.h>
+#include "moveConstants.h"
 
 
 // SELECT ROBOT CONFIGURATION
@@ -24,7 +25,7 @@
 #endif
 
 
-
+unsigned char movementMode = 0;
 
 
 // static json document for communication
@@ -155,6 +156,159 @@ void setup()
 		}
 	#endif
 
+//		uintptr_t address = &manualKeyframeSetServoGroup0[0][0];
+//		DEBUG_SERIAL_NAME.println("aaaaaaaaaaa");
+//		DEBUG_SERIAL_NAME.print("address=");
+//		DEBUG_SERIAL_NAME.println(address);
+//		DEBUG_SERIAL_NAME.print("manualKeyframeSetServoGroup0[0][0]=");
+//		DEBUG_SERIAL_NAME.println(manualKeyframeSetServoGroup0[0][0]);
+//		unsigned char *value = *reinterpret_cast<unsigned char  *>(address);
+//		DEBUG_SERIAL_NAME.print("value=");
+//		DEBUG_SERIAL_NAME.println(value[0][0]);
+////		DEBUG_SERIAL_NAME.print("value[1]=");
+////		DEBUG_SERIAL_NAME.println(value[1]);
+////		DEBUG_SERIAL_NAME.println("xxxxx");
+
+
+
+
+}
+
+
+/**
+ * parses the movementMode from the current json document
+ * return: movementMode
+ */
+unsigned char getMovementModeFromCurrentJson()
+{
+	unsigned char movementMode=doc["m"];
+	#if DEBUG_JSON_PARSING
+		Log.traceln(F("%s: movementMode=%d"),__FUNCTION__, movementMode);
+	#endif
+
+	return  movementMode;
+}
+
+
+/**
+ * parse the json and update the given keyframe row (single row only)
+ * parses:
+ * - time
+ * - servo positions
+ */
+void parseJsonDocGenericAndUpdateKeyframeRow(unsigned char *manualKeyframeServoGroupRow, char *servoGroupName, unsigned char manualKeyframeServoGroupRowLength)
+{
+
+	unsigned char value=0;
+
+	unsigned char time=doc["t"];
+	for (unsigned char servo=1; servo <= manualKeyframeServoGroupRowLength;  servo++)
+		{
+
+			String id=String(servo-1);
+			value=doc[servoGroupName][id];
+			manualKeyframeSetServoGroup0[0][servo] = value;
+			#if DEBUG_JSON_PARSING
+				Log.traceln("%s: servo=%d, value from doc=%d", __FUNCTION__, servo, value);
+			#endif
+
+		}
+}
+
+/**
+ * processes the json document
+ */
+void processJsonDocument()
+{
+	unsigned char movementMode = getMovementModeFromCurrentJson();
+	switch (movementMode)
+	{
+		case MOVE_MANUAL_JSON_LIVE:
+			// iterate over the servoGroups:
+			for (int i=0; i<NUMBER_OF_SERVOGROUPS; i++)
+			{
+				// build the servorgroup name (static text + dynamic id)
+				String sg = "sg" + String(i);
+
+				// check if the desired servogroup is inside the json document
+				if (doc.containsKey(sg))
+				{
+					// iterate over the ids of the supported amount of servo groups
+
+					switch (i)
+					{
+						case 0:
+							#if DEBUG_PROCESS_JSON_DOCUMENT
+								Log.traceln(F("%s: movementMode=%d calling parseJsonDocGenericAndUpdateKeyframeRow for sg%d, length %d "), __FUNCTION__, movementMode, i, sizeof (manualKeyframeSetServoGroup0[0]));
+							#endif
+							parseJsonDocGenericAndUpdateKeyframeRow(manualKeyframeSetServoGroup0[0], "sg0", sizeof (manualKeyframeSetServoGroup0[0]));
+							break;
+
+						#if NUMBER_OF_SERVOGROUPS > 1
+							case 1:
+								#if DEBUG_PROCESS_JSON_DOCUMENT
+									Log.traceln(F("%s: movementMode=%d calling parseJsonDocGenericAndUpdateKeyframeRow for sg%d, length %d "), __FUNCTION__, movementMode, i, sizeof (manualKeyframeSetServoGroup1[0]));
+								#endif
+								parseJsonDocGenericAndUpdateKeyframeRow(manualKeyframeSetServoGroup1[0], "sg1", sizeof (manualKeyframeSetServoGroup0[1]));
+								break;
+						#endif
+						#if NUMBER_OF_SERVOGROUPS > 2
+							case 2:
+								#if DEBUG_PROCESS_JSON_DOCUMENT
+									Log.traceln(F("%s: movementMode=%d calling parseJsonDocGenericAndUpdateKeyframeRow for sg%d, length %d "), __FUNCTION__, movementMode, i, sizeof (manualKeyframeSetServoGroup2[0]));
+								#endif
+								parseJsonDocGenericAndUpdateKeyframeRow(manualKeyframeSetServoGroup2[0], "sg2", sizeof (manualKeyframeSetServoGroup2[0])));
+								break;
+						#endif
+						#if NUMBER_OF_SERVOGROUPS > 3
+							case 3:
+								#if DEBUG_PROCESS_JSON_DOCUMENT
+									Log.traceln(F("%s: movementMode=%d calling parseJsonDocGenericAndUpdateKeyframeRow for sg%d, length %d "), __FUNCTION__, movementMode, i, sizeof (manualKeyframeSetServoGroup3[0]);
+								#endif
+								parseJsonDocGenericAndUpdateKeyframeRow(manualKeyframeSetServoGroup3[0], "sg3", sizeof (manualKeyframeSetServoGroup3[0])));
+								break;
+						#endif
+					}
+				}
+				else
+				{
+					Log.trace("missing sg%d", i);
+				}
+			}
+			break;
+	}
+
+}
+
+void parseJsonDoc()
+{
+	unsigned char  time=doc["t"];
+	movementMode = doc["m"];
+
+	#if DEBUG_JSON_PARSING
+		Log.traceln(F("%s: time=%d, mm=%d"), __FUNCTION__, time, movementMode);
+	#endif
+	if (movementMode == MOVE_MANUAL_JSON_LIVE )
+	{
+	#if NUMBER_OF_SERVOGROUPS > 1
+		String sg="sg0";
+		unsigned char value=0;
+
+		manualKeyframeSetServoGroup0[0][0]=time;
+		for (unsigned char servo=1; servo <= sizeof (manualKeyframeSetServoGroup0[0]);  servo++)
+		{
+
+			String id=String(servo-1);
+			value=doc[sg][id];
+			manualKeyframeSetServoGroup0[0][servo] = value;
+			#if DEBUG_JSON_PARSING
+				Log.traceln("servo=%d, value from doc=%d", servo,value);
+			#endif
+
+		}
+	#endif
+	}
+
 }
 
 // The loop function is called in an endless loop
@@ -171,5 +325,11 @@ void loop()
 			DEBUG_SERIAL_NAME.println(jsonParsingError.f_str());
 		return;
 		}
+//		parseJsonDoc();
+		processJsonDocument();
+
+
 	}
+
+
 }
